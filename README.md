@@ -29,7 +29,7 @@ Downloads and runs the TAK infrastructure deployment script that:
 - Docker installed and running
 - Node.js and npm
 - Route53 hosted zone
-- TAK server zip file (takserver-docker-<version>.zip) from [tak.gov](https://tak.gov/products/tak-server) in current directory
+- TAK server zip file (takserver-docker-\<version\>.zip) from [tak.gov](https://tak.gov/products/tak-server) in current directory
 
 ## Usage
 
