@@ -296,23 +296,20 @@ else
     echo "Password: $PASSWORD"
     echo ""
     
-    # Display TAK Server URL
+    # Display TAK Service URL
     echo "TAK Server Information:"
     TAK_URL=$(aws cloudformation describe-stacks --stack-name "TAK-$STACK_NAME-TakInfra" --region "$REGION" --query "Stacks[0].Outputs[?OutputKey=='TakServiceUrl'].OutputValue" --output text)
-    echo "TAK Server URL: $TAK_URL"
+    echo "TAK Service URL: $TAK_URL"
     
     # Download TAK Server admin certificate
     echo "Downloading TAK Server admin certificate..."
     aws secretsmanager get-secret-value --secret-id "TAK-$STACK_NAME-TakInfra/TAK-Server/Admin-Cert" --query SecretBinary --output text | base64 -d > "$INITIAL_DIR/tak-admin-cert.p12"
-    
-    echo "Deployment completed successfully!"
     echo "Admin certificate saved to: $INITIAL_DIR/tak-admin-cert.p12"
 
-    echo ""
-    echo "========================================"
-    echo "              NEXT STEPS"
-    echo "========================================"
-    echo "Groups in Authentik prefixed with \"tak_\" become \"channels\" in TAK."
-    echo "Create users in Authentik and assign them to \"tak_\" groups."
-    echo ""
+    # Display TAK Server URL
+    TAK_SERVER_URL=$(aws cloudformation describe-stacks --stack-name "TAK-$STACK_NAME-TakInfra" --region "$REGION" --query "Stacks[0].Outputs[?OutputKey=='TakServerUrl'].OutputValue" --output text)
+    echo "TAK Server URL (Admin Access): $TAK_SERVER_URL"
+    
+    echo "Deployment completed successfully!"
+
 fi
