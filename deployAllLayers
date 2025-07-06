@@ -10,7 +10,7 @@ PROJECT="TAK on AWS"
 REGION="us-west-2"
 BRANDING="generic"
 LDAP_BASE_DN="dc=ldap,dc=tak"
-LETS_ENCRYPT_MODE="staging"
+LETS_ENCRYPT_MODE="production"
 
 # Repository URLs
 BASE_INFRA_REPO="https://github.com/TAK-NZ/base-infra"
