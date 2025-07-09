@@ -185,7 +185,8 @@ if [ "$DESTROY_MODE" = true ]; then
     
     # Empty S3 bucket before destroying BaseInfra
     echo "Emptying S3 bucket..."
-    S3_BUCKET="tak-${STACK_NAME,,}-baseinfra-${REGION}-env-config"
+    ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text)
+    S3_BUCKET="tak-${STACK_NAME,,}-baseinfra-${REGION}-${ACCOUNT_ID}-config"
     aws s3 rm "s3://$S3_BUCKET" --recursive || true
     
     # Destroy BaseInfra
@@ -218,7 +219,8 @@ else
     
     # Upload configuration files to S3
     echo "Uploading configuration files to S3..."
-    S3_BUCKET="tak-${STACK_NAME,,}-baseinfra-${REGION}-env-config"
+    ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text)
+    S3_BUCKET="tak-${STACK_NAME,,}-baseinfra-${REGION}-${ACCOUNT_ID}-config"
     for config_file in "authentik-config.env" "takserver-config.env" "cloudtak-config.env"; do
         if [ -f "$INITIAL_DIR/$config_file" ]; then
             echo "Uploading existing $config_file"
