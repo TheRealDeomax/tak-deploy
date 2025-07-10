@@ -266,7 +266,7 @@ else
         --context envType="$ENV_TYPE" \
         --context stackName="$STACK_NAME" \
         --context branding="$BRANDING" \
-        --context staging="$LETS_ENCRYPT_MODE" \
+        --context letsEncryptMode="$LETS_ENCRYPT_MODE" \
         --context letsEncryptEmail="$ADMIN_USER_EMAIL" \
         --context tak-project="$PROJECT" \
         --context tak-component="TakInfra" \
