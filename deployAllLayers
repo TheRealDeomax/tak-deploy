@@ -243,6 +243,7 @@ else
     cd auth-infra
     npm install
     export CDK_DEFAULT_REGION="$REGION"
+    echo "Using S3 Authentik config file"
     npm run cdk deploy -- \
         --context envType="$ENV_TYPE" \
         --context stackName="$STACK_NAME" \
@@ -252,6 +253,7 @@ else
         --context tak-project="$PROJECT" \
         --context tak-component="AuthInfra" \
         --context tak-region="$REGION" \
+        --context useS3AuthentikConfigFile=true \
         --require-approval never $NO_ROLLBACK
     cd ..
     
@@ -261,7 +263,7 @@ else
     # Copy TAK server zip file to tak-infra directory
     cp "$INITIAL_DIR/takserver-docker-$REQUIRED_VERSION.zip" .
     npm install
-    export CDK_DEFAULT_REGION="$REGION"
+    export CDK_DEFAULT_REGION="$REGION"    
     npm run cdk deploy -- \
         --context envType="$ENV_TYPE" \
         --context stackName="$STACK_NAME" \
@@ -271,6 +273,7 @@ else
         --context tak-project="$PROJECT" \
         --context tak-component="TakInfra" \
         --context tak-region="$REGION" \
+        --context useS3TAKServerConfigFile=true \
         --require-approval never $NO_ROLLBACK
     cd ..
     
