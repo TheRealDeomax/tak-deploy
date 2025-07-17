@@ -29,7 +29,7 @@ Downloads and runs the TAK infrastructure deployment script that:
 - AWS CLI configured
 - Docker installed and running
 - Node.js and npm
-- Route53 hosted zone
+- [Route53 hosted zone](https://github.com/TAK-NZ/base-infra/blob/main/docs/AWS_GITHUB_SETUP.md#1-route-53-dns-setup)
 - TAK server zip file (takserver-docker-\<version\>.zip) from [tak.gov](https://tak.gov/products/tak-server) in current directory
 
 ## Usage
