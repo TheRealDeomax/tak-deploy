@@ -22,6 +22,7 @@ Downloads and runs the TAK infrastructure deployment script that:
 - Deploys BaseInfra (VPC, ECS, S3, certificates)
 - Deploys AuthInfra (Authentik SSO, LDAP)
 - Deploys TakInfra (TAK Server)
+- Optionally deploys CloudTAK (when DEPLOY_CLOUDTAK=true)
 
 ## Prerequisites
 
@@ -37,5 +38,7 @@ Downloads and runs the TAK infrastructure deployment script that:
 ./deployAllLayers --r53ZoneName tak.your-domain.com
 ./deployAllLayers --destroy  # Remove all infrastructure
 ```
+
+To enable CloudTAK deployment, edit the script and set `DEPLOY_CLOUDTAK=true` at the top of the file.
 
 See `./deployAllLayers --help` for full options.

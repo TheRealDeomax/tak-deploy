@@ -11,11 +11,13 @@ REGION="us-west-2"
 BRANDING="generic"
 LDAP_BASE_DN="dc=ldap,dc=tak"
 LETS_ENCRYPT_MODE="production"
+DEPLOY_CLOUDTAK=true
 
 # Repository URLs
 BASE_INFRA_REPO="https://github.com/TAK-NZ/base-infra"
 AUTH_INFRA_REPO="https://github.com/TAK-NZ/auth-infra"
 TAK_INFRA_REPO="https://github.com/TAK-NZ/tak-infra"
+CLOUDTAK_REPO="https://github.com/TAK-NZ/CloudTAK"
 
 # Store initial directory
 INITIAL_DIR=$(pwd)
@@ -45,7 +47,8 @@ show_help() {
     echo "  REGION              AWS region (default: \"us-west-2\")"
     echo "  BRANDING            Branding type: \"generic\" or \"tak-nz\" (default: \"generic\")"
     echo "  LDAP_BASE_DN        LDAP base DN (default: \"dc=ldap,dc=tak\")"
-    echo "  LETS_ENCRYPT_MODE   Let's Encrypt mode: \"staging\" or \"production\" (default: \"staging\")"
+    echo "  LETS_ENCRYPT_MODE   Let's Encrypt mode: \"staging\" or \"production\" (default: \"production\")"
+    echo "  DEPLOY_CLOUDTAK     Deploy CloudTAK after TAK Server: true or false (default: false)"
     echo ""
     echo "PREREQUISITES:"
     echo "  - AWS CLI configured with appropriate credentials"
@@ -146,6 +149,11 @@ update_repo "$BASE_INFRA_REPO"
 update_repo "$AUTH_INFRA_REPO"
 update_repo "$TAK_INFRA_REPO"
 
+# Update CloudTAK repository if needed
+if [ "$DEPLOY_CLOUDTAK" = true ]; then
+    update_repo "$CLOUDTAK_REPO"
+fi
+
 # Validate TAK server version (skip for destroy mode)
 if [ "$DESTROY_MODE" = false ]; then
     echo "Validating TAK server version..."
@@ -167,6 +175,16 @@ if [ "$DESTROY_MODE" = true ]; then
     # Destroy stacks in reverse order
     echo "Destroying TAK infrastructure in reverse order..."
     
+    # Destroy CloudTAK if enabled
+    if [ "$DEPLOY_CLOUDTAK" = true ] && [ -d "CloudTAK" ]; then
+        echo "Destroying CloudTAK..."
+        cd CloudTAK/cdk
+        npm install
+        export CDK_DEFAULT_REGION="$REGION"
+        npm run cdk destroy -- --context envType="$ENV_TYPE" --context stackName="$STACK_NAME" --force
+        cd ../..
+    fi
+    
     # Destroy TakInfra
     echo "Destroying TakInfra..."
     cd tak-infra
@@ -183,11 +201,19 @@ if [ "$DESTROY_MODE" = true ]; then
     npm run cdk destroy -- --context envType="$ENV_TYPE" --context stackName="$STACK_NAME" --force
     cd ..
     
-    # Empty S3 bucket before destroying BaseInfra
-    echo "Emptying S3 bucket..."
+    # Empty S3 buckets before destroying BaseInfra
+    echo "Emptying S3 buckets..."
     ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text)
+    
+    # Empty config bucket
     S3_BUCKET="tak-${STACK_NAME,,}-baseinfra-${REGION}-${ACCOUNT_ID}-config"
+    echo "Emptying config bucket: $S3_BUCKET"
     aws s3 rm "s3://$S3_BUCKET" --recursive || true
+    
+    # Empty ELB logs bucket
+    S3_ELB_BUCKET="tak-${STACK_NAME,,}-baseinfra-${REGION}-${ACCOUNT_ID}-elblogs"
+    echo "Emptying ELB logs bucket: $S3_ELB_BUCKET"
+    aws s3 rm "s3://$S3_ELB_BUCKET" --recursive || true
     
     # Destroy BaseInfra
     echo "Destroying BaseInfra..."
@@ -277,6 +303,22 @@ else
         --require-approval never $NO_ROLLBACK
     cd ..
     
+    # Deploy CloudTAK if enabled
+    if [ "$DEPLOY_CLOUDTAK" = true ]; then
+        echo "Deploying CloudTAK..."
+        cd CloudTAK/cdk
+        npm install
+        export CDK_DEFAULT_REGION="$REGION"
+        npm run cdk deploy -- \
+            --context envType="$ENV_TYPE" \
+            --context stackName="$STACK_NAME" \
+            --context tak-project="$PROJECT" \
+            --context tak-component="CloudTAK" \
+            --context tak-region="$REGION" \
+            --require-approval never $NO_ROLLBACK
+        cd ../..
+    fi
+    
     # Calculate and display deployment duration
     END_TIME=$(date +%s)
     DURATION=$((END_TIME - START_TIME))
@@ -314,6 +356,25 @@ else
     # Display TAK Server URL
     TAK_SERVER_URL=$(aws cloudformation describe-stacks --stack-name "TAK-$STACK_NAME-TakInfra" --region "$REGION" --query "Stacks[0].Outputs[?OutputKey=='TakServerUrl'].OutputValue" --output text)
     echo "TAK Server URL (Admin Access): $TAK_SERVER_URL"
+    
+    # Display CloudTAK URL if deployed
+    if [ "$DEPLOY_CLOUDTAK" = true ]; then
+        echo ""
+        echo "CloudTAK Admin Credentials:"
+        CLOUDTAK_URL=$(aws cloudformation describe-stacks --stack-name "TAK-$STACK_NAME-CloudTAK" --region "$REGION" --query "Stacks[0].Outputs[?OutputKey=='ServiceURL'].OutputValue" --output text 2>/dev/null || echo "Not available")
+        echo "CloudTAK URL: $CLOUDTAK_URL"
+        
+        # Display CloudTAK admin credentials
+        CLOUDTAK_ADMIN_CREDS=$(aws secretsmanager get-secret-value --secret-id "TAK-$STACK_NAME-CloudTAK/API/Admin-Password" --query SecretString --output text 2>/dev/null || echo "Not available")
+        if [ "$CLOUDTAK_ADMIN_CREDS" != "Not available" ]; then
+            CLOUDTAK_USERNAME=$(echo "$CLOUDTAK_ADMIN_CREDS" | grep -o '"username":"[^"]*"' | cut -d'"' -f4)
+            CLOUDTAK_PASSWORD=$(echo "$CLOUDTAK_ADMIN_CREDS" | grep -o '"password":"[^"]*"' | cut -d'"' -f4)
+            echo "Username: $CLOUDTAK_USERNAME"
+            echo "Password: $CLOUDTAK_PASSWORD"
+        else
+            echo "Admin credentials not available"
+        fi
+    fi
     
     echo "Deployment completed successfully!"
 
