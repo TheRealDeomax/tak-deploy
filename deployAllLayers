@@ -315,6 +315,7 @@ else
             --context tak-project="$PROJECT" \
             --context tak-component="CloudTAK" \
             --context tak-region="$REGION" \
+            --context useS3CloudTAKConfigFile=true \
             --require-approval never $NO_ROLLBACK
         cd ../..
     fi
