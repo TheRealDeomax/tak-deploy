@@ -353,6 +353,11 @@ else
     echo "Downloading TAK Server admin certificate..."
     aws secretsmanager get-secret-value --secret-id "TAK-$STACK_NAME-TakInfra/TAK-Server/Admin-Cert" --query SecretBinary --output text | base64 -d > "$INITIAL_DIR/tak-admin-cert.p12"
     echo "Admin certificate saved to: $INITIAL_DIR/tak-admin-cert.p12"
+    
+    # Download TAK Server federation CA certificate
+    echo "Downloading TAK Server federation CA certificate..."
+    aws secretsmanager get-secret-value --secret-id "TAK-$STACK_NAME-TakInfra/TAK-Server/FederateCA" --query SecretString --output text > "$INITIAL_DIR/federation-ca.pem"
+    echo "Federation CA certificate saved to: $INITIAL_DIR/federation-ca.pem"
 
     # Display TAK Server URL
     TAK_SERVER_URL=$(aws cloudformation describe-stacks --stack-name "TAK-$STACK_NAME-TakInfra" --region "$REGION" --query "Stacks[0].Outputs[?OutputKey=='TakServerUrl'].OutputValue" --output text)
