@@ -42,3 +42,8 @@ Downloads and runs the TAK infrastructure deployment script that:
 To enable CloudTAK deployment, edit the script and set `DEPLOY_CLOUDTAK=true` at the top of the file.
 
 See `./deployAllLayers --help` for full options.
+
+## License
+
+TAK.NZ is distributed under [AGPL-3.0-only](LICENSE)\
+Copyright (C) 2025 - Christian Elsen, Team Awareness Kit New Zealand (TAK.NZ)
